@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Udlånsbestilling</title>
+
+<style>
+:root {
+  --primary: #4f7cff;
+  --primary-dark: #3b63d1;
+  --bg: #f4f6fb;
+  --card: #ffffff;
+  --text: #2d2d2d;
+  --radius: 14px;
+}
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.container {
+  max-width: 1100px;
+  margin: auto;
+  padding: 40px 20px;
+}
+
+h1 {
+  margin-bottom: 10px;
+}
+
+.section-title {
+  margin-top: 50px;
+  margin-bottom: 20px;
+  font-size: 22px;
+  border-left: 5px solid var(--primary);
+  padding-left: 12px;
+}
+
+/* FORM */
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+label {
+  font-weight: 600;
+  margin-bottom: 5px;
+  display: block;
+}
+
+input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 10px;
+  border-radius: var(--radius);
+  border: 1px solid #ddd;
+  transition: 0.2s ease;
+}
+
+input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(79,124,255,0.2);
+}
+
+.readonly {
+  background: #eef2ff;
+  font-weight: bold;
+  text-align: center;
+}
+
+/* PRODUCT */
+
+.category-section {
+  margin-top: 40px;
+}
+
+.category-title {
+  font-size: 20px;
+  margin-bottom: 15px;
+  color: var(--primary-dark);
+}
+
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 20px;
+}
+
+.product-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+  transition: 0.3s ease;
+  text-align: center;
+}
+
+.product-card:hover {
+  transform: translateY(-5px);
+}
+
+.product-image {
+  width: 100%;
+  height: 220px;
+  object-fit: contain;
+  background: #f8f8f8;
+}
+
+.product-content {
+  padding: 15px;
+}
+
+.product-content h3 {
+  margin: 0 0 10px 0;
+  font-size: 16px;
+}
+
+.product-content input {
+  width: 80px;
+  text-align: center;
+  margin: auto;
+  display: block;
+}
+
+/* BUTTON */
+
+.button {
+  margin-top: 40px;
+  padding: 14px 30px;
+  background: var(--primary);
+  border: none;
+  border-radius: var(--radius);
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.button:hover {
+  background: var(--primary-dark);
+}
+
+/* STATUS */
+
+.status {
+  padding: 15px;
+  border-radius: var(--radius);
+  background: white;
+  margin-top: 20px;
+}
+
+.status.error {
+  color: #b00020;
+  background: #fff0f0;
+}
+
+.status.loading {
+  color: #555;
+}
+
+/* FOOTER */
+
+footer {
+  text-align: center;
+  margin-top: 60px;
+  color: #888;
+  font-size: 14px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <h1>Udlånsbestilling</h1>
+
+  <!-- PERIODE -->
+
+  <div class="section-title">
+    Periode
+  </div>
+
+  <div class="form-grid">
+
+    <div>
+      <label for="afhentning">
+        Afhentning
+      </label>
+
+      <input
+        type="date"
+        id="afhentning"
+      >
+    </div>
+
+    <div>
+      <label for="tilbageleveringsdato">
+        Tilbagelevering
+      </label>
+
+      <input
+        type="date"
+        id="tilbageleveringsdato"
+      >
+    </div>
+
+    <div>
+      <label for="laneperiode">
+        Låneperiode (dage)
+      </label>
+
+      <input
+        type="number"
+        id="laneperiode"
+        class="readonly"
+        readonly
+      >
+    </div>
+
+  </div>
+
+
+  <!-- PRODUKTER -->
+
+  <div class="section-title">
+    Produkter
+  </div>
+
+  <div
+    id="productStatus"
+    class="status loading"
+  >
+    Henter produkter...
+  </div>
+
+  <div id="productContainer"></div>
+
+
+  <!-- KONTAKT -->
+
+  <div class="section-title">
+    Kontaktoplysninger
+  </div>
+
+  <div class="form-grid">
+
+    <div>
+      <label for="navn">
+        Navn
+      </label>
+
+      <input
+        type="text"
+        id="navn"
+      >
+    </div>
+
+    <div>
+      <label for="telefon">
+        Telefon
+      </label>
+
+      <input
+        type="tel"
+        id="telefon"
+      >
+    </div>
+
+    <div>
+      <label for="institution">
+        Institution
+      </label>
+
+      <input
+        type="text"
+        id="institution"
+      >
+    </div>
+
+  </div>
+
+
+  <!-- SEND -->
+
+  <button
+    class="button"
+    onclick="sendMail()"
+  >
+    Send bestilling
+  </button>
+
+
+  <footer>
+    Udlånssystem
+  </footer>
+
+</div>
+
+
+<script>
+
+/* =========================================================
+   PRODUCTS
+   ========================================================= */
+
+
+/* =========================================================
+   PRODUCTS
+   ========================================================= */
+
+const PRODUCTS_URL =
+  "https://raw.githubusercontent.com/TheManBoyThingHuman/Sys/refs/heads/main/Items.json";
+
+let products = [];
+
+
+/* =========================================================
+   LOAD PRODUCTS FROM GITHUB
+   ========================================================= */
+
+async function loadProducts() {
+
+  const status =
+    document.getElementById("productStatus");
+
+  status.className = "status loading";
+  status.textContent =
+    "Henter produkter...";
+
+  try {
+
+    const response =
+      await fetch(PRODUCTS_URL);
+
+    if (!response.ok) {
+
+      throw new Error(
+        "Kunne ikke hente Items.json. HTTP " +
+        response.status
+      );
+
+    }
+
+    const data =
+      await response.json();
+
+    if (!Array.isArray(data)) {
+
+      throw new Error(
+        "Items.json skal indeholde en liste af produkter."
+      );
+
+    }
+
+    products = data.map(product => {
+
+      return {
+
+        id: product.id,
+
+        name: product.name,
+
+        image: product.image || "",
+
+        tags:
+          Array.isArray(product.tags)
+            ? product.tags
+            : []
+
+      };
+
+    });
+
+    console.log(
+      "Products from GitHub:",
+      products
+    );
+
+    renderProducts();
+
+    status.style.display = "none";
+
+  } catch (error) {
+
+    console.error(
+      "Fejl ved hentning af produkter:",
+      error
+    );
+
+    status.className =
+      "status error";
+
+    status.textContent =
+      "Kunne ikke hente produkter: " +
+      error.message;
+
+  }
+
+}
+
+
+/* =========================================================
+   RENDER PRODUCTS
+   ========================================================= */
+
+function renderProducts() {
+
+  const container =
+    document.getElementById(
+      "productContainer"
+    );
+
+
+  container.innerHTML = "";
+
+
+  /*
+    Group products by katalog_ tags.
+
+    Example:
+
+    katalog_Lys
+
+    becomes:
+
+    Lys
+  */
+
+  const grouped = {};
+
+
+  products.forEach(product => {
+
+
+    /*
+      Make sure tags is an array
+    */
+
+    const tags =
+      Array.isArray(product.tags)
+        ? product.tags
+        : [];
+
+
+    /*
+      Find every tag beginning with:
+
+      katalog_
+    */
+
+    const categoryTags =
+      tags.filter(tag =>
+
+        typeof tag === "string" &&
+        tag.toLowerCase()
+          .startsWith("katalog_")
+
+      );
+
+
+    /*
+      Product without a katalog_ tag
+      is NOT displayed.
+    */
+
+    categoryTags.forEach(tag => {
+
+
+      /*
+        Remove:
+
+        katalog_
+
+        Example:
+
+        katalog_Lys
+
+        becomes:
+
+        Lys
+      */
+
+      const category =
+        tag.substring(8).trim();
+
+
+      if (!category) {
+        return;
+      }
+
+
+      if (!grouped[category]) {
+
+        grouped[category] = [];
+
+      }
+
+
+      grouped[category].push(product);
+
+    });
+
+  });
+
+
+  /*
+    Sort categories alphabetically
+  */
+
+  const categories =
+    Object.keys(grouped).sort(
+      (a, b) =>
+        a.localeCompare(
+          b,
+          "da"
+        )
+    );
+
+
+  /*
+    No matching products
+  */
+
+  if (categories.length === 0) {
+
+    container.innerHTML = `
+      <div class="status">
+        Ingen produkter med en
+        <strong>katalog_</strong>-tag blev fundet.
+      </div>
+    `;
+
+    return;
+
+  }
+
+
+  /*
+    Create each category
+  */
+
+  categories.forEach(category => {
+
+
+    const section =
+      document.createElement("div");
+
+    section.className =
+      "category-section";
+
+
+    section.innerHTML = `
+
+      <div class="category-title">
+        ${escapeHtml(category)}
+      </div>
+
+      <div class="product-grid"></div>
+
+    `;
+
+
+    const grid =
+      section.querySelector(
+        ".product-grid"
+      );
+
+
+    /*
+      Render products in category
+    */
+
+    grouped[category].forEach(product => {
+
+
+      const card =
+        document.createElement("div");
+
+      card.className =
+        "product-card";
+
+
+      const image =
+        product.image ||
+        "https://via.placeholder.com/400x300?text=Ingen+image";
+
+
+      card.innerHTML = `
+
+        <img
+          class="product-image"
+          src="${escapeAttribute(image)}"
+          alt="${escapeAttribute(product.name)}"
+        >
+
+        <div class="product-content">
+
+          <h3>
+            ${escapeHtml(product.name)}
+          </h3>
+
+          <input
+            type="number"
+            min="0"
+            value="0"
+            data-id="${escapeAttribute(product.id)}"
+            data-name="${escapeAttribute(product.name)}"
+          >
+
+        </div>
+
+      `;
+
+
+      grid.appendChild(card);
+
+    });
+
+
+    container.appendChild(section);
+
+  });
+
+}
+
+
+/* =========================================================
+   HTML ESCAPING
+   ========================================================= */
+
+function escapeHtml(value) {
+
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+
+}
+
+
+function escapeAttribute(value) {
+
+  return escapeHtml(value);
+
+}
+
+
+/* =========================================================
+   CALCULATE LOAN PERIOD
+   ========================================================= */
+
+function calculateDays() {
+
+  const startValue =
+    document.getElementById(
+      "afhentning"
+    ).value;
+
+
+  const endValue =
+    document.getElementById(
+      "tilbageleveringsdato"
+    ).value;
+
+
+  const output =
+    document.getElementById(
+      "laneperiode"
+    );
+
+
+  if (!startValue || !endValue) {
+
+    output.value = "";
+
+    return;
+
+  }
+
+
+  const start =
+    new Date(
+      startValue + "T00:00:00"
+    );
+
+
+  const end =
+    new Date(
+      endValue + "T00:00:00"
+    );
+
+
+  const diff =
+    Math.ceil(
+      (end - start) /
+      (1000 * 60 * 60 * 24)
+    );
+
+
+  output.value =
+    diff >= 0
+      ? diff
+      : 0;
+
+}
+
+
+/* =========================================================
+   SEND EMAIL
+   ========================================================= */
+
+function sendMail() {
+
+  const laneperiode =
+    document.getElementById(
+      "laneperiode"
+    ).value;
+
+
+  const navn =
+    document.getElementById(
+      "navn"
+    ).value;
+
+
+  const telefon =
+    document.getElementById(
+      "telefon"
+    ).value;
+
+
+  const institution =
+    document.getElementById(
+      "institution"
+    ).value;
+
+
+  const afhentning =
+    document.getElementById(
+      "afhentning"
+    ).value;
+
+
+  const tilbagelevering =
+    document.getElementById(
+      "tilbageleveringsdato"
+    ).value;
+
+
+  /*
+    Get selected products
+  */
+
+  let produkterListe = "";
+
+
+  document
+    .querySelectorAll("[data-id]")
+    .forEach(input => {
+
+
+      const quantity =
+        Number(input.value);
+
+
+      if (quantity > 0) {
+
+        produkterListe +=
+          `- ${input.dataset.name}: ${quantity}\n`;
+
+      }
+
+    });
+
+
+  if (!produkterListe) {
+
+    produkterListe =
+      "Ingen produkter valgt\n";
+
+  }
+
+
+  /*
+    Build email
+  */
+
+  const body =
+`Afhentning: ${afhentning}
+Tilbagelevering: ${tilbagelevering}
+Låneperiode: ${laneperiode} dage
+
+Produkter:
+${produkterListe}
+
+Kontakt:
+Navn: ${navn}
+Telefon: ${telefon}
+Institution: ${institution}`;
+
+
+  /*
+    Open user's email client
+  */
+
+  const mailto =
+    "mailto:gpvbestilling@gladsaxe.dk" +
+    "?subject=" +
+    encodeURIComponent(
+      "Bestilling"
+    ) +
+    "&body=" +
+    encodeURIComponent(
+      body
+    );
+
+
+  window.location.href =
+    mailto;
+
+}
+
+
+/* =========================================================
+   EVENTS
+   ========================================================= */
+
+document
+  .getElementById("afhentning")
+  .addEventListener(
+    "change",
+    calculateDays
+  );
+
+
+document
+  .getElementById(
+    "tilbageleveringsdato"
+  )
+  .addEventListener(
+    "change",
+    calculateDays
+  );
+
+
+/* =========================================================
+   START
+   ========================================================= */
+
+loadProducts();
+
+</script>
+
+</body>
+</html>
