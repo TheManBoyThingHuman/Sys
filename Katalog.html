@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Udlånsbestilling</title>
 
 <style>
@@ -101,6 +100,8 @@ input:focus {
   box-shadow: 0 6px 18px rgba(0,0,0,0.06);
   transition: 0.3s ease;
   text-align: center;
+  display: flex;
+  flex-direction: column;
 }
 
 .product-card:hover {
@@ -116,18 +117,50 @@ input:focus {
 
 .product-content {
   padding: 15px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
 
 .product-content h3 {
-  margin: 0 0 10px 0;
+  margin: 0 0 8px 0;
   font-size: 16px;
+}
+
+.product-description {
+  margin: 0 0 12px 0;
+  font-size: 13px;
+  color: #666;
+  line-height: 1.4;
+  flex: 1;
 }
 
 .product-content input {
   width: 80px;
   text-align: center;
-  margin: auto;
+  margin: 0 auto 10px auto;
   display: block;
+}
+
+.accessory-btn {
+  border: 1px solid var(--primary);
+  background: white;
+  color: var(--primary);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.accessory-btn:hover {
+  background: var(--primary);
+  color: white;
+}
+
+.accessory-btn.has-selection {
+  background: var(--primary);
+  color: white;
 }
 
 /* BUTTON */
@@ -164,6 +197,123 @@ input:focus {
 
 .status.loading {
   color: #555;
+}
+
+/* MODAL */
+
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.45);
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.modal-overlay.open {
+  display: flex;
+}
+
+.modal-box {
+  background: white;
+  border-radius: var(--radius);
+  max-width: 480px;
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 25px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+}
+
+.modal-box h2 {
+  margin-top: 0;
+  margin-bottom: 4px;
+  font-size: 20px;
+}
+
+.modal-subtitle {
+  color: #777;
+  font-size: 13px;
+  margin-bottom: 20px;
+}
+
+.accessory-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.accessory-row:last-child {
+  border-bottom: none;
+}
+
+.accessory-row input[type="checkbox"] {
+  width: auto;
+  margin-top: 4px;
+}
+
+.accessory-info {
+  flex: 1;
+  text-align: left;
+}
+
+.accessory-info strong {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 3px;
+}
+
+.accessory-info span {
+  font-size: 12px;
+  color: #777;
+}
+
+.accessory-qty {
+  width: 60px !important;
+  padding: 6px !important;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.modal-actions button {
+  border: none;
+  border-radius: var(--radius);
+  padding: 10px 20px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.modal-cancel {
+  background: #eee;
+  color: #333;
+}
+
+.modal-save {
+  background: var(--primary);
+  color: white;
+}
+
+.modal-save:hover {
+  background: var(--primary-dark);
+}
+
+.no-accessories {
+  color: #777;
+  font-size: 14px;
+  padding: 10px 0;
 }
 
 /* FOOTER */
@@ -229,6 +379,7 @@ footer {
   </div>
 
 
+
   <!-- PRODUKTER -->
 
   <div class="section-title">
@@ -243,6 +394,7 @@ footer {
   </div>
 
   <div id="productContainer"></div>
+
 
 
   <!-- KONTAKT -->
@@ -289,6 +441,7 @@ footer {
   </div>
 
 
+
   <!-- SEND -->
 
   <button
@@ -299,19 +452,27 @@ footer {
   </button>
 
 
+
   <footer>
     Udlånssystem
   </footer>
 
 </div>
 
+<!-- ACCESSORY MODAL -->
+<div class="modal-overlay" id="accessoryModalOverlay">
+  <div class="modal-box">
+    <h2 id="modalProductName">Tilbehør</h2>
+    <div class="modal-subtitle">Vælg det tilbehør, du ønsker at låne sammen med produktet.</div>
+    <div id="modalAccessoryList"></div>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeAccessoryModal()">Annuller</button>
+      <button class="modal-save" onclick="saveAccessorySelection()">Gem</button>
+    </div>
+  </div>
+</div>
 
 <script>
-
-/* =========================================================
-   PRODUCTS
-   ========================================================= */
-
 
 /* =========================================================
    PRODUCTS
@@ -321,6 +482,20 @@ const PRODUCTS_URL =
   "https://raw.githubusercontent.com/TheManBoyThingHuman/Sys/refs/heads/main/Items.json";
 
 let products = [];
+
+/*
+  selectedAccessories:
+  {
+    [productId]: [ { id, name, qty }, ... ]
+  }
+*/
+let selectedAccessories = {};
+
+/*
+  Holds which product the modal is currently editing
+*/
+let activeModalProductId = null;
+
 
 
 /* =========================================================
@@ -369,11 +544,18 @@ async function loadProducts() {
 
         name: product.name,
 
+        description: product.description || "",
+
         image: product.image || "",
 
         tags:
           Array.isArray(product.tags)
             ? product.tags
+            : [],
+
+        accessories:
+          Array.isArray(product.accessories)
+            ? product.accessories
             : []
 
       };
@@ -408,6 +590,7 @@ async function loadProducts() {
 }
 
 
+
 /* =========================================================
    RENDER PRODUCTS
    ========================================================= */
@@ -420,7 +603,9 @@ function renderProducts() {
     );
 
 
+
   container.innerHTML = "";
+
 
 
   /*
@@ -438,7 +623,9 @@ function renderProducts() {
   const grouped = {};
 
 
+
   products.forEach(product => {
+
 
 
     /*
@@ -449,6 +636,7 @@ function renderProducts() {
       Array.isArray(product.tags)
         ? product.tags
         : [];
+
 
 
     /*
@@ -467,12 +655,14 @@ function renderProducts() {
       );
 
 
+
     /*
       Product without a katalog_ tag
       is NOT displayed.
     */
 
     categoryTags.forEach(tag => {
+
 
 
       /*
@@ -493,9 +683,11 @@ function renderProducts() {
         tag.substring(8).trim();
 
 
+
       if (!category) {
         return;
       }
+
 
 
       if (!grouped[category]) {
@@ -505,11 +697,13 @@ function renderProducts() {
       }
 
 
+
       grouped[category].push(product);
 
     });
 
   });
+
 
 
   /*
@@ -524,6 +718,7 @@ function renderProducts() {
           "da"
         )
     );
+
 
 
   /*
@@ -544,6 +739,7 @@ function renderProducts() {
   }
 
 
+
   /*
     Create each category
   */
@@ -551,11 +747,13 @@ function renderProducts() {
   categories.forEach(category => {
 
 
+
     const section =
       document.createElement("div");
 
     section.className =
       "category-section";
+
 
 
     section.innerHTML = `
@@ -569,10 +767,12 @@ function renderProducts() {
     `;
 
 
+
     const grid =
       section.querySelector(
         ".product-grid"
       );
+
 
 
     /*
@@ -582,6 +782,7 @@ function renderProducts() {
     grouped[category].forEach(product => {
 
 
+
       const card =
         document.createElement("div");
 
@@ -589,9 +790,29 @@ function renderProducts() {
         "product-card";
 
 
+
       const image =
         product.image ||
         "https://via.placeholder.com/400x300?text=Ingen+image";
+
+
+
+      const hasAccessories =
+        Array.isArray(product.accessories) &&
+        product.accessories.length > 0;
+
+
+
+      const accessoryButtonHtml =
+        hasAccessories
+          ? `<button
+              type="button"
+              class="accessory-btn"
+              data-product-id="${escapeAttribute(product.id)}"
+              onclick="openAccessoryModal(${JSON.stringify(product.id)})"
+            >Tilbehør</button>`
+          : "";
+
 
 
       card.innerHTML = `
@@ -608,6 +829,12 @@ function renderProducts() {
             ${escapeHtml(product.name)}
           </h3>
 
+          ${
+            product.description
+              ? `<p class="product-description">${escapeHtml(product.description)}</p>`
+              : `<p class="product-description"></p>`
+          }
+
           <input
             type="number"
             min="0"
@@ -616,9 +843,12 @@ function renderProducts() {
             data-name="${escapeAttribute(product.name)}"
           >
 
+          ${accessoryButtonHtml}
+
         </div>
 
       `;
+
 
 
       grid.appendChild(card);
@@ -626,11 +856,244 @@ function renderProducts() {
     });
 
 
+
     container.appendChild(section);
 
   });
 
 }
+
+
+
+/* =========================================================
+   ACCESSORY MODAL
+   ========================================================= */
+
+function findProductById(productId) {
+
+  return products.find(
+    product => String(product.id) === String(productId)
+  );
+
+}
+
+
+
+function openAccessoryModal(productId) {
+
+  const product =
+    findProductById(productId);
+
+  if (!product) {
+    return;
+  }
+
+  activeModalProductId = productId;
+
+  document.getElementById("modalProductName").textContent =
+    "Tilbehør til: " + product.name;
+
+  const list =
+    document.getElementById("modalAccessoryList");
+
+  list.innerHTML = "";
+
+  const accessories =
+    Array.isArray(product.accessories)
+      ? product.accessories
+      : [];
+
+  if (accessories.length === 0) {
+
+    list.innerHTML =
+      `<div class="no-accessories">Der er intet tilbehør til dette produkt.</div>`;
+
+  } else {
+
+    /*
+      Existing selection for this product,
+      so the modal remembers previous choices.
+    */
+
+    const existing =
+      selectedAccessories[productId] || [];
+
+    accessories.forEach(accessory => {
+
+      const existingEntry =
+        existing.find(
+          entry => String(entry.id) === String(accessory.id)
+        );
+
+      const isChecked =
+        !!existingEntry;
+
+      const qty =
+        existingEntry
+          ? existingEntry.qty
+          : 1;
+
+      const row =
+        document.createElement("div");
+
+      row.className = "accessory-row";
+
+      row.innerHTML = `
+        <input
+          type="checkbox"
+          data-accessory-id="${escapeAttribute(accessory.id)}"
+          ${isChecked ? "checked" : ""}
+        >
+        <div class="accessory-info">
+          <strong>${escapeHtml(accessory.name)}</strong>
+          ${
+            accessory.description
+              ? `<span>${escapeHtml(accessory.description)}</span>`
+              : ""
+          }
+        </div>
+        <input
+          type="number"
+          class="accessory-qty"
+          min="1"
+          value="${escapeAttribute(qty)}"
+          data-accessory-qty-id="${escapeAttribute(accessory.id)}"
+        >
+      `;
+
+      list.appendChild(row);
+
+    });
+
+  }
+
+  document
+    .getElementById("accessoryModalOverlay")
+    .classList.add("open");
+
+}
+
+
+
+function closeAccessoryModal() {
+
+  document
+    .getElementById("accessoryModalOverlay")
+    .classList.remove("open");
+
+  activeModalProductId = null;
+
+}
+
+
+
+function saveAccessorySelection() {
+
+  if (activeModalProductId === null) {
+    closeAccessoryModal();
+    return;
+  }
+
+  const list =
+    document.getElementById("modalAccessoryList");
+
+  const selections = [];
+
+  list
+    .querySelectorAll("input[type='checkbox']")
+    .forEach(checkbox => {
+
+      if (!checkbox.checked) {
+        return;
+      }
+
+      const accessoryId =
+        checkbox.dataset.accessoryId;
+
+      const qtyInput =
+        list.querySelector(
+          `input[data-accessory-qty-id="${CSS.escape(accessoryId)}"]`
+        );
+
+      const qty =
+        qtyInput
+          ? Math.max(1, Number(qtyInput.value) || 1)
+          : 1;
+
+      const product =
+        findProductById(activeModalProductId);
+
+      const accessory =
+        product && Array.isArray(product.accessories)
+          ? product.accessories.find(
+              a => String(a.id) === String(accessoryId)
+            )
+          : null;
+
+      selections.push({
+        id: accessoryId,
+        name: accessory ? accessory.name : accessoryId,
+        qty: qty
+      });
+
+    });
+
+  if (selections.length > 0) {
+
+    selectedAccessories[activeModalProductId] = selections;
+
+  } else {
+
+    delete selectedAccessories[activeModalProductId];
+
+  }
+
+  /*
+    Highlight the button if accessories are selected
+  */
+
+  const button =
+    document.querySelector(
+      `.accessory-btn[data-product-id="${CSS.escape(String(activeModalProductId))}"]`
+    );
+
+  if (button) {
+
+    if (selections.length > 0) {
+
+      button.classList.add("has-selection");
+      button.textContent =
+        "Tilbehør (" + selections.length + ")";
+
+    } else {
+
+      button.classList.remove("has-selection");
+      button.textContent = "Tilbehør";
+
+    }
+
+  }
+
+  closeAccessoryModal();
+
+}
+
+
+
+/*
+  Close modal by clicking outside the box
+*/
+
+document
+  .getElementById("accessoryModalOverlay")
+  .addEventListener("click", function (event) {
+
+    if (event.target === this) {
+      closeAccessoryModal();
+    }
+
+  });
+
 
 
 /* =========================================================
@@ -649,11 +1112,13 @@ function escapeHtml(value) {
 }
 
 
+
 function escapeAttribute(value) {
 
   return escapeHtml(value);
 
 }
+
 
 
 /* =========================================================
@@ -668,16 +1133,19 @@ function calculateDays() {
     ).value;
 
 
+
   const endValue =
     document.getElementById(
       "tilbageleveringsdato"
     ).value;
 
 
+
   const output =
     document.getElementById(
       "laneperiode"
     );
+
 
 
   if (!startValue || !endValue) {
@@ -689,16 +1157,19 @@ function calculateDays() {
   }
 
 
+
   const start =
     new Date(
       startValue + "T00:00:00"
     );
 
 
+
   const end =
     new Date(
       endValue + "T00:00:00"
     );
+
 
 
   const diff =
@@ -708,12 +1179,14 @@ function calculateDays() {
     );
 
 
+
   output.value =
     diff >= 0
       ? diff
       : 0;
 
 }
+
 
 
 /* =========================================================
@@ -728,10 +1201,12 @@ function sendMail() {
     ).value;
 
 
+
   const navn =
     document.getElementById(
       "navn"
     ).value;
+
 
 
   const telefon =
@@ -740,10 +1215,12 @@ function sendMail() {
     ).value;
 
 
+
   const institution =
     document.getElementById(
       "institution"
     ).value;
+
 
 
   const afhentning =
@@ -752,10 +1229,12 @@ function sendMail() {
     ).value;
 
 
+
   const tilbagelevering =
     document.getElementById(
       "tilbageleveringsdato"
     ).value;
+
 
 
   /*
@@ -765,13 +1244,16 @@ function sendMail() {
   let produkterListe = "";
 
 
+
   document
     .querySelectorAll("[data-id]")
     .forEach(input => {
 
 
+
       const quantity =
         Number(input.value);
+
 
 
       if (quantity > 0) {
@@ -779,9 +1261,27 @@ function sendMail() {
         produkterListe +=
           `- ${input.dataset.name}: ${quantity}\n`;
 
+        const productId =
+          input.dataset.id;
+
+        const accessories =
+          selectedAccessories[productId];
+
+        if (Array.isArray(accessories) && accessories.length > 0) {
+
+          accessories.forEach(accessory => {
+
+            produkterListe +=
+              `    - Tilbehør: ${accessory.name} (${accessory.qty})\n`;
+
+          });
+
+        }
+
       }
 
     });
+
 
 
   if (!produkterListe) {
@@ -790,6 +1290,7 @@ function sendMail() {
       "Ingen produkter valgt\n";
 
   }
+
 
 
   /*
@@ -810,6 +1311,7 @@ Telefon: ${telefon}
 Institution: ${institution}`;
 
 
+
   /*
     Open user's email client
   */
@@ -826,10 +1328,12 @@ Institution: ${institution}`;
     );
 
 
+
   window.location.href =
     mailto;
 
 }
+
 
 
 /* =========================================================
@@ -844,6 +1348,7 @@ document
   );
 
 
+
 document
   .getElementById(
     "tilbageleveringsdato"
@@ -852,6 +1357,7 @@ document
     "change",
     calculateDays
   );
+
 
 
 /* =========================================================
