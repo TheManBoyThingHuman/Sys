@@ -13,10 +13,8 @@
     "image": "https://current-rms.s3.amazonaws.com/885c21a0-d4ea-0134-805c-0ef4bc0a069e/icons/3367/original/current_2000x2000px-1__15_.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIAYESX23ZCUJ754KRV%2F20260907%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260907T113108Z&X-Amz-Expires=16454&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEHIaCXVzLWVhc3QtMSJHMEUCIG9NzKGTZEauA6g5GAdCdBAh0wDXl9IZwDkQcEpnjEZ%2FAiEAk7geNCLw3Y%2F2iPpKCwqu4XyRpwm417NoBeLinaTiDVcqtQUIOxAAGgw1NTk2MDM3MDMzNjUiDP8Sc%2Bzv2F4rdOi8FiqSBX%2BPNj%2F1KAv0pbgQZluZqL5G1h8FMXBom4vHAZEIFoAFt3jOc2qoTMV%2BQqYT38j88aceuTi1TQw6mgBEiAApG6F4s%2FVCGbIWVDzUW0rBc%2F%2FwXqD4cgklnMdq13V%2BGAF%2FUoSf0UL%2FJUT71EAV%2BSgTw6wuiszp3k8ei4tBxhptiRM1geWB7MAnFuSWl8ykDLpC%2BimCycxwKozWVxoEsGb0hATD280Ll4sI%2BkCAnUooZW9l64zDYPsPn5E%2FCl7nudzupL5ulAScHAbo%2F0YxbXn%2BY0Y6CIif1dWYHAo8HmQDrhF%2ByBJADrnwZtY%2FWh1wGyIQTVRtYJKEtslcUrdhxYBEDL5ZQ6mxoXu27aPpJTfdoRYs3092%2B0ytkrkUC6Na%2B%2FZTzqDWIaZd4zdjSOf7mEl2qrAct0TJ%2FZxefxoydFPWCU9VrHOCa5rzwCmEom%2FJWEZVfILPJWvPd7cj7UPJmwDwP555yY330wez1sQrCS8mRG88E9ib86fAQ%2BZ6pi2z3%2Bj2RmslEuHyX3tPvfpj3RODocaIg9T3Clv1ene2CsZTGZYTT3AOG%2F86M%2B4fbutkIRli2ZkX2UTDUpUosHsQqV5Ikx004Ew8lvx%2F5XRbNzfh1J4LHA44hP3D%2FSHzrjE66A7gpMqbV0Nk6AitrPS%2BVhlBvmxGjx32WApDIaWg5fffjkAQ4rVj3%2BuvjOjfyaps%2FyATc%2FcosHqyY2RWymQ%2BjcZmC4Vm6Ivx7FSBiTMw9t6AIXk60TF1E47VD5UcdgzfQAB6w7yGgwT9wWTFb4JdhJOuSumJISUL%2FFYi1vhEW2gT5EbNtSMEubwL9RajBKHf2LkW6fVRP5spQkpBAadfsB6M85ygDJyIcXfLWoedUshGgEUIgjcw7Jf61AY6sQGVVdiPNlU89SZ1b0RNmT7oYbqPedF5NMUJNyH%2BCd6fV3hCrywSRoz0hQuPp1cfGNPbMZjMaQMLfOTook5jUd3tYCZSBd%2FMSOGKimOG2IW4MwNLbMfyOUPdWVausNSQjqIXLhKeeMtlOl2nTaozMKpHP%2FzJa3G1gxc%2BC1B3zX1QjNE7YSnQ4qfPC099vkXRg%2BU4LytxQHNvx5L98xAmNcxeSWxpp%2BH%2B949cY3tJRb9Njrk%3D&X-Amz-SignedHeaders=host&X-Amz-Signature=5cc8da773795a82062749d7357114f13948994234abcb2d11158b04306753ed7",
     "tags": ["katalog_Events"],
     "accessories": [
-      { 
-        "id": 203, "name": "2L Blue Ice Koncentrat,", "description": "2L Blue Ice Koncentrat, Som svarer til 12L Slush-ice",
-        "id": 204, "name": "2L Hindbær Koncentrat,", "description": "2L Hindbær Koncentrat, Som svarer til 12L Slush-ice"
-      }
+      { "id": 203, "name": "2L Blue Ice Koncentrat,", "description": "2L Blue Ice Koncentrat, Som svarer til 12L Slush-ice"},
+      {"id": 204, "name": "2L Hindbær Koncentrat,", "description": "2L Hindbær Koncentrat, Som svarer til 12L Slush-ice"}
     ]
   },
   {
