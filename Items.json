@@ -1,1 +1,38 @@
-
+[
+  {
+    "id": 1,
+    "name": "Håndbold",
+    "image": "https://images.unsplash.com/photo-1518065896235-a4c93e088e7e?auto=format&fit=crop&w=800&q=80",
+    "tags": ["katalog_Bolde"]
+  },
+  {
+    "id": 2,
+    "name": "Fodbold",
+    "image": "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?auto=format&fit=crop&w=800&q=80",
+    "tags": ["katalog_Bolde"]
+  },
+  {
+    "id": 3,
+    "name": "Toppe",
+    "image": "https://images.unsplash.com/photo-1594737625785-cb9a5b0d1b4e?auto=format&fit=crop&w=800&q=80",
+    "tags": ["katalog_Træningsudstyr"]
+  },
+  {
+    "id": 4,
+    "name": "Kegler",
+    "image": "https://images.unsplash.com/photo-1580748141549-71748dbe0e35?auto=format&fit=crop&w=800&q=80",
+    "tags": ["katalog_Træningsudstyr"]
+  },
+  {
+    "id": 5,
+    "name": "Stopur",
+    "image": "https://images.unsplash.com/photo-1508057198894-247b23fe5ade?auto=format&fit=crop&w=800&q=80",
+    "tags": ["katalog_Diverse"]
+  },
+  {
+    "id": 6,
+    "name": "Ignition WAL-L412 sæt",
+    "image": "https://via.placeholder.com/800x600?text=Ignition+WAL-L412",
+    "tags": ["katalog_Lys"]
+  }
+]
