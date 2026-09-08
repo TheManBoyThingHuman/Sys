@@ -180,10 +180,102 @@ input:focus {
   color: var(--primary-dark);
 }
 
+/* SEARCH + FIND TOOLS */
+
+.finder {
+  position: sticky;
+  top: 12px;
+  z-index: 20;
+  background: var(--paper);
+  padding: 10px 0 16px;
+  margin-bottom: 4px;
+}
+
+.search-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-field svg {
+  position: absolute;
+  left: 14px;
+  width: 17px;
+  height: 17px;
+  stroke: var(--muted);
+  pointer-events: none;
+}
+
+.search-field input {
+  padding: 12px 40px 12px 40px;
+  border-radius: var(--radius-md);
+  font-size: 15px;
+  background: var(--surface);
+}
+
+.search-clear {
+  position: absolute;
+  right: 8px;
+  width: 26px;
+  height: 26px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 50%;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.search-clear:hover {
+  background: var(--line);
+  color: var(--ink);
+}
+
+.search-clear.visible {
+  display: flex;
+}
+
+.category-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.category-pill {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+
+.category-pill:hover {
+  border-color: var(--primary);
+  color: var(--primary-dark);
+  background: var(--primary-tint);
+}
+
+.selection-summary {
+  font-size: 13px;
+  color: var(--primary-dark);
+  margin-top: 10px;
+  min-height: 18px;
+}
+
 /* PRODUCT */
 
 .category-section {
   margin-top: 36px;
+  scroll-margin-top: 90px;
 }
 
 .category-section:first-child {
@@ -199,6 +291,11 @@ input:focus {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.category-title .count {
+  color: var(--muted);
+  font-weight: 500;
 }
 
 .category-title::after {
@@ -227,6 +324,11 @@ input:focus {
 .product-card:hover {
   border-color: var(--primary);
   box-shadow: 0 4px 14px rgba(20, 63, 57, 0.08);
+}
+
+.product-card.has-qty {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px var(--primary);
 }
 
 .product-image {
@@ -325,6 +427,23 @@ input:focus {
 .accessory-btn.has-selection:hover {
   background: var(--amber);
   color: white;
+}
+
+.no-results {
+  border: 1px dashed var(--line);
+  border-radius: var(--radius-md);
+  padding: 28px 20px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.no-results strong {
+  display: block;
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 16px;
+  margin-bottom: 4px;
 }
 
 /* BUTTON */
@@ -550,6 +669,7 @@ footer {
     left: 17px;
   }
   h1 { font-size: 28px; }
+  .finder { top: 0; }
 }
 </style>
 </head>
@@ -604,8 +724,22 @@ footer {
       <div class="step-title">Produkter</div>
       <p class="step-hint">Vælg antal af det udstyr, du har brug for. Tilføj eventuelt tilbehør til det enkelte produkt.</p>
 
+      <div class="finder">
+        <div class="search-field">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input type="text" id="productSearch" placeholder="Søg efter produkt, tilbehør eller kategori...">
+          <button type="button" class="search-clear" id="searchClearBtn" aria-label="Ryd søgning">×</button>
+        </div>
+        <div class="category-nav" id="categoryNav"></div>
+        <div class="selection-summary" id="selectionSummary"></div>
+      </div>
+
       <div id="productStatus" class="status loading">Henter produkter...</div>
       <div id="productContainer"></div>
+      <div id="noResults" class="no-results" style="display:none;">
+        <strong>Ingen produkter matcher din søgning</strong>
+        Prøv et andet ord, eller ryd søgefeltet for at se alle produkter.
+      </div>
     </div>
   </div>
 
@@ -683,6 +817,11 @@ let selectedAccessories = {};
   Holds which product the modal is currently editing
 */
 let activeModalProductId = null;
+
+/*
+  Current search query, lowercased
+*/
+let searchQuery = "";
 
 
 
@@ -782,6 +921,16 @@ async function loadProducts() {
 /* =========================================================
    RENDER PRODUCTS
    ========================================================= */
+
+function slugify(value) {
+
+  return String(value)
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9æøå]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+}
 
 function renderProducts() {
 
@@ -922,9 +1071,57 @@ function renderProducts() {
       </div>
     `;
 
+    document.getElementById("categoryNav").innerHTML = "";
+
     return;
 
   }
+
+
+
+  /*
+    Build the quick-jump category pills once,
+    so people with a long list can skip straight
+    to the section they need.
+  */
+
+  const nav =
+    document.getElementById("categoryNav");
+
+  nav.innerHTML = "";
+
+  categories.forEach(category => {
+
+    const pill =
+      document.createElement("button");
+
+    pill.type = "button";
+    pill.className = "category-pill";
+    pill.textContent = category;
+
+    pill.addEventListener("click", () => {
+
+      clearSearch();
+
+      const target =
+        document.getElementById(
+          "cat-" + slugify(category)
+        );
+
+      if (target) {
+
+        target.scrollIntoView({
+          behavior: "smooth",
+          block: "start"
+        });
+
+      }
+
+    });
+
+    nav.appendChild(pill);
+
+  });
 
 
 
@@ -942,12 +1139,16 @@ function renderProducts() {
     section.className =
       "category-section";
 
+    section.id =
+      "cat-" + slugify(category);
+
 
 
     section.innerHTML = `
 
       <div class="category-title">
         ${escapeHtml(category)}
+        <span class="count">(${grouped[category].length})</span>
       </div>
 
       <div class="product-grid"></div>
@@ -976,6 +1177,26 @@ function renderProducts() {
 
       card.className =
         "product-card";
+
+
+
+      /*
+        Text used for the live search, so a hit on
+        the product name, description, category or
+        an accessory name will surface the card.
+      */
+
+      const accessoryNames =
+        Array.isArray(product.accessories)
+          ? product.accessories.map(a => a.name).join(" ")
+          : "";
+
+      card.dataset.search = [
+        product.name,
+        product.description,
+        category,
+        accessoryNames
+      ].join(" ").toLowerCase();
 
 
 
@@ -1053,6 +1274,88 @@ function renderProducts() {
 
   });
 
+
+
+  /*
+    Keep the quantity/summary line and any active
+    search filter in sync with the freshly rendered cards.
+  */
+
+  attachQtyChangeTracking();
+
+  applySearchFilter();
+
+}
+
+
+
+/* =========================================================
+   LIVE SEARCH
+   ========================================================= */
+
+function applySearchFilter() {
+
+  const query =
+    searchQuery.trim().toLowerCase();
+
+  const sections =
+    document.querySelectorAll(".category-section");
+
+  let visibleCount = 0;
+
+  sections.forEach(section => {
+
+    const cards =
+      section.querySelectorAll(".product-card");
+
+    let visibleInSection = 0;
+
+    cards.forEach(card => {
+
+      const matches =
+        !query ||
+        (card.dataset.search || "").includes(query);
+
+      card.style.display =
+        matches ? "" : "none";
+
+      if (matches) {
+        visibleInSection++;
+      }
+
+    });
+
+    section.style.display =
+      visibleInSection > 0 ? "" : "none";
+
+    visibleCount += visibleInSection;
+
+  });
+
+  document.getElementById("noResults").style.display =
+    (query && visibleCount === 0) ? "block" : "none";
+
+  const clearBtn =
+    document.getElementById("searchClearBtn");
+
+  clearBtn.classList.toggle(
+    "visible",
+    query.length > 0
+  );
+
+}
+
+function clearSearch() {
+
+  const input =
+    document.getElementById("productSearch");
+
+  input.value = "";
+
+  searchQuery = "";
+
+  applySearchFilter();
+
 }
 
 
@@ -1075,6 +1378,10 @@ function stepQty(buttonEl, delta) {
   input.value =
     Math.max(min, next);
 
+  input.dispatchEvent(
+    new Event("change", { bubbles: true })
+  );
+
 }
 
 
@@ -1092,6 +1399,76 @@ function stepAccessoryQty(buttonEl, delta) {
 
   input.value =
     Math.max(min, next);
+
+}
+
+
+
+/* =========================================================
+   SELECTED-ITEMS SUMMARY
+   (helps people quickly see what they've already
+   picked without scrolling through every category)
+   ========================================================= */
+
+function attachQtyChangeTracking() {
+
+  document
+    .querySelectorAll('[data-id]')
+    .forEach(input => {
+
+      input.addEventListener("change", () => {
+
+        const card =
+          input.closest(".product-card");
+
+        if (card) {
+
+          card.classList.toggle(
+            "has-qty",
+            Number(input.value) > 0
+          );
+
+        }
+
+        updateSelectionSummary();
+
+      });
+
+    });
+
+  updateSelectionSummary();
+
+}
+
+function updateSelectionSummary() {
+
+  const inputs =
+    document.querySelectorAll('[data-id]');
+
+  let totalItems = 0;
+  let distinctProducts = 0;
+
+  inputs.forEach(input => {
+
+    const qty =
+      Number(input.value) || 0;
+
+    if (qty > 0) {
+
+      totalItems += qty;
+      distinctProducts++;
+
+    }
+
+  });
+
+  const summary =
+    document.getElementById("selectionSummary");
+
+  summary.textContent =
+    distinctProducts > 0
+      ? `Valgt: ${distinctProducts} produkt${distinctProducts === 1 ? "" : "er"}, ${totalItems} styk i alt`
+      : "";
 
 }
 
@@ -1593,6 +1970,24 @@ document
     "change",
     calculateDays
   );
+
+
+
+document
+  .getElementById("productSearch")
+  .addEventListener("input", function () {
+
+    searchQuery = this.value;
+
+    applySearchFilter();
+
+  });
+
+
+
+document
+  .getElementById("searchClearBtn")
+  .addEventListener("click", clearSearch);
 
 
 
