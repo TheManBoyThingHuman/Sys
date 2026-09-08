@@ -187,9 +187,14 @@ input:focus {
   top: 12px;
   border-radius: 15px;
   z-index: 20;
-  background: #dcdedc;
   padding: 10px 0 16px;
   margin-bottom: 4px;
+  transition: background 0.15s ease;
+}
+
+/* Only colored when it's NOT anchored (stuck) to the top */
+.finder.is-unstuck {
+  background: #dcdedc;
 }
 
 .search-field {
@@ -934,7 +939,8 @@ footer {
       <div class="step-title">Produkter</div>
       <p class="step-hint">Vælg antal af det udstyr, du har brug for. Tilføj eventuelt tilbehør til det enkelte produkt.</p>
 
-      <div class="finder">
+      <div id="finderSentinel"></div>
+      <div class="finder" id="finder">
         <div class="search-field">
           <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
           <input type="text" id="productSearch" placeholder="Søg efter produkt, tilbehør eller kategori...">
@@ -2351,6 +2357,54 @@ Institution: ${institution}`;
 
 
 /* =========================================================
+   FINDER STUCK / UNSTUCK DETECTION
+
+   There's no CSS ":stuck" pseudo-class for
+   position: sticky, so we watch a zero-height
+   sentinel placed right above the finder bar.
+   While the sentinel is visible, the finder hasn't
+   engaged its sticky offset yet ("unstuck", so it
+   gets the grey background). Once the sentinel
+   scrolls out of view, the finder has locked to the
+   top ("stuck"/anchored), so the background is removed.
+   ========================================================= */
+
+function initFinderStickyWatcher() {
+
+  const finder =
+    document.getElementById("finder");
+
+  const sentinel =
+    document.getElementById("finderSentinel");
+
+  if (!finder || !sentinel) {
+    return;
+  }
+
+  const observer = new IntersectionObserver(
+    ([entry]) => {
+
+      finder.classList.toggle(
+        "is-unstuck",
+        entry.isIntersecting
+      );
+
+    },
+    {
+      // Matches .finder's `top: 12px` sticky offset,
+      // so the flip happens right as it engages.
+      rootMargin: "-13px 0px 0px 0px",
+      threshold: 0
+    }
+  );
+
+  observer.observe(sentinel);
+
+}
+
+
+
+/* =========================================================
    EVENTS
    ========================================================= */
 
@@ -2430,6 +2484,7 @@ document
    ========================================================= */
 
 loadProducts();
+initFinderStickyWatcher();
 
 </script>
 
